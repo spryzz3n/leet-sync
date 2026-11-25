@@ -10,6 +10,33 @@ const EXT = {
 
 chrome.action.onClicked.addListener(() => chrome.runtime.openOptionsPage());
 
+// Detect submissions from the background, independent of the page's state.
+const CHECK_RE = /\/submissions\/detail\/(\d+)\/check\/?/;
+chrome.webRequest.onCompleted.addListener(
+  (d) => {
+    const m = d.url.match(CHECK_RE);
+    if (m && d.tabId >= 0) notifyTab(d.tabId, m[1]);
+  },
+  { urls: ["https://leetcode.com/submissions/detail/*"] }
+);
+
+async function notifyTab(tabId, submissionId) {
+  const msg = { type: "check", submissionId };
+  try {
+    await chrome.tabs.sendMessage(tabId, msg);
+  } catch {
+    // Content script missing/orphaned (e.g. extension was reloaded): re-inject it.
+    try {
+      await chrome.scripting.executeScript({ target: { tabId }, files: ["content.js"] });
+      await chrome.tabs.sendMessage(tabId, msg);
+    } catch (e) {
+      console.warn("[LeetSync] could not reach tab", tabId, e);
+    }
+  }
+}
+
+const inFlight = new Set();
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Only accept messages from our own content script running on leetcode.com
   if (sender.id !== chrome.runtime.id) return;
@@ -58,6 +85,7 @@ async function gh(cfg, method, path, body) {
   if (method === "GET" && cfg.branch) url += `?ref=${encodeURIComponent(cfg.branch)}`;
   return fetch(url, {
     method,
+    cache: "no-store", // never reuse a stale file sha (causes 409 on resubmits)
     headers: {
       Authorization: `Bearer ${cfg.token}`,
       Accept: "application/vnd.github+json",
@@ -95,6 +123,16 @@ function safeSlug(s) {
 }
 
 async function sync(p) {
+  if (inFlight.has(p.submissionId)) return { path: "(in progress)" };
+  inFlight.add(p.submissionId);
+  try {
+    return await doSync(p);
+  } finally {
+    inFlight.delete(p.submissionId);
+  }
+}
+
+async function doSync(p) {
   const cfg = await getConfig();
 
   // De-dupe across page reloads
