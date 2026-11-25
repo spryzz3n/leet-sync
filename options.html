@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>LeetSync settings</title>
+  <style>
+    body { font: 14px system-ui, sans-serif; max-width: 520px; margin: 32px auto; padding: 0 16px; color: #222; }
+    h1 { font-size: 20px; }
+    label { display: block; margin-top: 14px; font-weight: 600; }
+    input { width: 100%; box-sizing: border-box; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; font: inherit; }
+    .hint { font-weight: 400; color: #666; font-size: 12px; }
+    .row { display: flex; gap: 8px; margin-top: 18px; }
+    button { padding: 8px 16px; border-radius: 6px; border: 1px solid #888; background: #f5f5f5; cursor: pointer; font: inherit; }
+    button.primary { background: #2f6feb; color: #fff; border-color: #2f6feb; }
+    #status { margin-top: 16px; white-space: pre-wrap; font-family: ui-monospace, monospace; font-size: 12px; }
+    .ok { color: #1a7f37; } .err { color: #cf222e; }
+    #last { margin-top: 24px; padding-top: 12px; border-top: 1px solid #eee; color: #555; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <h1>LeetSync settings</h1>
+
+  <label>GitHub owner <span class="hint">(your username)</span>
+    <input id="owner" placeholder="octocat" autocomplete="off" />
+  </label>
+  <label>Repository name
+    <input id="repo" placeholder="leetcode-solutions" autocomplete="off" />
+  </label>
+  <label>Branch <span class="hint">(optional, blank = default branch)</span>
+    <input id="branch" placeholder="main" autocomplete="off" />
+  </label>
+  <label>Fine-grained token <span class="hint">(stored only in this browser, chrome.storage.local)</span>
+    <input id="token" type="password" placeholder="github_pat_..." autocomplete="off" />
+  </label>
+
+  <div class="row">
+    <button class="primary" id="save">Save</button>
+    <button id="test">Test connection</button>
+  </div>
+  <div id="status"></div>
+  <div id="last"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>

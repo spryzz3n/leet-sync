@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "LeetSync",
+  "version": "0.2.0",
+  "description": "Push accepted LeetCode submissions to a single GitHub repo using a fine-grained token.",
+  "permissions": ["storage"],
+  "host_permissions": ["https://api.github.com/*"],
+  "background": { "service_worker": "background.js" },
+  "action": { "default_title": "LeetSync - click for settings" },
+  "options_page": "options.html",
+  "content_scripts": [
+    {
+      "matches": ["https://leetcode.com/*"],
+      "js": ["inject.js"],
+      "world": "MAIN",
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://leetcode.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ]
+}
